@@ -1,0 +1,183 @@
+package viva2;
+import java.util.Scanner;
+import java.util.Arrays;
+/**
+ *
+ * @author noraz
+ */
+public class Viva2 {
+
+    
+    public static boolean isAnagram(String a, String b) {
+        // Find which string is longer to set up the comparison correctly
+        String longer = (a.length() >= b.length()) ? a : b;
+        String shorter = (a.length() < b.length()) ? a : b;
+        
+        // Count characters for the longer word
+        int[] counts = new int[26];
+        for (char c : longer.toCharArray()) { //convert String into character array
+            counts[c - 'a']++;
+        }
+        
+        // Subtract counts for the shorter word
+        for (char c : shorter.toCharArray()) { // convert string into character
+            int index = c - 'a';
+            counts[index]--;
+            // If the count drops below zero, the shorter word requires a letter 
+            // that the longer word doesn't have enough of.
+            if (counts[index] < 0) {
+                return false;
+            }
+        }
+        
+        // If all characters in the shorter word are accounted for in the longer word, 
+        // they form a group under this non-standard definition.
+        return true;
+    }
+    
+    public static int countChar(String str) {
+        return str.length(); 
+    }
+    
+     
+    private static String[] getUniqueWordsWithOriginalCase(String[] rawWords) { // Remove Duplicate Word
+        String[] uniqueWords = new String[rawWords.length]; 
+        int currentUniqueIndex = 0;
+        
+        for (int i = 0; i < rawWords.length; i++) {
+            String currentWordOriginal = rawWords[i];
+            String currentWordLower = currentWordOriginal.toLowerCase();
+            boolean isDuplicate = false;
+            
+            for (int j = 0; j < currentUniqueIndex; j++) {
+                // Check if the lowercase version of the current word already exists
+                if (currentWordLower.equals(uniqueWords[j].toLowerCase())) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            
+            if (!isDuplicate) {
+                // Store the word with its original case
+                uniqueWords[currentUniqueIndex++] = currentWordOriginal;
+            }
+        }
+        // Return only the occupied part of the array
+        return Arrays.copyOf(uniqueWords, currentUniqueIndex);
+    }
+    
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+
+        // 1. Get the number of words
+        System.out.print("Enter the number of words: ");
+        if (!input.hasNextInt()) {
+            System.err.println("Invalid number of words provided. Exiting.");
+            input.close();
+            return;
+        }
+        int n = input.nextInt();
+        input.nextLine(); // Consume the newline
+
+        // 2. Read all input words
+        String[] rawWords = new String[n];
+        System.out.println("Please enter the " + n + " words:");
+        for (int i = 0; i < n; i++) {
+            rawWords[i] = input.nextLine();
+        }
+
+        // --- Step 1: Preprocessing and Deduplication ---
+        
+        // This helper method help to remove duplicate words
+        String[] uniqueWords = getUniqueWordsWithOriginalCase(rawWords);
+        
+        // Tracking which words are already grouped
+        boolean[] grouped = new boolean[uniqueWords.length]; 
+        Arrays.fill(grouped, false); //reset all values to false
+
+        // --- Step 2 & 3: Anagram Grouping, Output Building, and Sorting ---
+        
+        StringBuilder anagramOutput = new StringBuilder();
+        String[] lonelyWords = new String[uniqueWords.length];
+        int lonelyIndex = 0;
+        int groupCount = 0;
+        
+        // Grouping anagram
+        for (int i = 0; i < uniqueWords.length; i++) {
+            if (!grouped[i]) { // Only process if word not used yet
+                String currentWordOriginal = uniqueWords[i]; // Stores orginal word
+               
+                String currentWordLower = currentWordOriginal.toLowerCase(); // Use the lowercase version for comparison logic
+                // Store words in current group
+                String[] currentGroup = new String[uniqueWords.length];
+                int currentGroupIndex = 0;
+
+                // Add word and marks it as used
+                currentGroup[currentGroupIndex++] = currentWordOriginal;
+                grouped[i] = true;
+                
+                boolean foundAnagram = false; // tracks whether a qroup exists
+
+                // Check subsequent words for anagrams
+                for (int j = i + 1; j < uniqueWords.length; j++) { // Compare with remaining words
+                    if (!grouped[j]) { // Skip already grouped words
+                        // Get next word
+                        String nextWordOriginal = uniqueWords[j];
+                        String nextWordLower = nextWordOriginal.toLowerCase();
+                        
+                        if (isAnagram(currentWordLower, nextWordLower)) { //Check if words are anagrams
+                            // Add to group and mark used
+                            currentGroup[currentGroupIndex++] = nextWordOriginal;
+                            grouped[j] = true;
+                            foundAnagram = true;
+                        }
+                    }
+                }
+                
+                // --- Sorting the Output ---
+                
+                if (foundAnagram) {  //if matches were found
+                    groupCount++; //increase group number
+                    
+                    // Create a sub-array for the current group
+                    String[] finalGroup = Arrays.copyOf(currentGroup, currentGroupIndex);
+                    // 1. Sort the words within the group alphabetically to standardize the output
+                    Arrays.sort(finalGroup); 
+                    
+                    // Build the output string for the anagram group
+                    anagramOutput.append("Anagram group ").append(groupCount).append(":");
+                    for (String word : finalGroup) {
+                        anagramOutput.append(" ").append(word);
+                    }
+                    anagramOutput.append("\n");
+                } else {
+                    // if no matches were found
+                    // This word is a "lonely" word
+                    lonelyWords[lonelyIndex++] = currentWordOriginal;
+                }
+            }
+        }
+        
+        // --- Final Display of Lonely Words (with sorting) ---
+
+        // Create a final array for lonely words
+        String[] finalLonelyWords = Arrays.copyOf(lonelyWords, lonelyIndex);
+        // 2. Sort the lonely words alphabetically
+        Arrays.sort(finalLonelyWords); 
+        
+        System.out.println("\n--- Program Output ---");
+        System.out.print(anagramOutput.toString());
+        
+        System.out.print("Without anagram group:");
+        for (String word : finalLonelyWords) {
+             System.out.print(" " + word);
+        }
+        System.out.println("\n----------------------");
+        
+        input.close();
+    }
+    
+    
+   
+    
+}
