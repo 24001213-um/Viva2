@@ -1,0 +1,132 @@
+package viva2;
+import java.util.Scanner;
+/**
+ *
+ * @author noraz
+ */
+public class viva2q3 {
+
+    static boolean[][] mirror = new boolean[256][256];
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // Default mirror pairs
+        addPair('A','A'); addPair('H','H'); addPair('I','I');
+        addPair('M','M'); addPair('O','O'); addPair('T','T');
+        addPair('U','U'); addPair('V','V'); addPair('W','W');
+        addPair('X','X'); addPair('Y','Y'); addPair('o','o');
+        addPair('b','d'); addPair('p','q'); addPair('u','u');
+        addPair('v','v'); addPair('w','w'); addPair('b','d');
+        addPair('d','b'); addPair('p','q'); addPair('q','p');
+
+
+        // Input additional mirror pairs
+        System.out.println("Enter additional pairs:");
+        int count = 0;
+
+        for (int i = 0; i < 10; i++) {
+            String line = sc.nextLine();
+            if (line.length() == 0) break;
+
+            char a = line.charAt(0);
+            char b = line.charAt(1);
+            addPair(a, b);
+            count++;
+        }
+
+        System.out.println("\n" + count + " pair(s) entered.");
+
+        // Input word
+        System.out.print("Enter word: ");
+        String word = sc.nextLine();
+
+        // Process
+        String palindrome = getLongestPalindrome(word);
+        String mirrorWord = getLongestMirror(word);
+
+        // Output
+        System.out.println("Longest palindrome substring: " +
+                (palindrome.equals("") ? "-" : palindrome));
+
+        System.out.println("Longest mirrorable substring: " +
+                (mirrorWord.equals("") ? "-" : mirrorWord));
+    }
+
+    // Add mirror pair
+    static void addPair(char a, char b) {
+        mirror[a][b] = true;
+        mirror[b][a] = true;
+    }
+
+    // Find longest palindrome
+    static String getLongestPalindrome(String s) {
+        int maxLen = 0, start = 0;
+
+        for (int i = 0; i < s.length(); i++) {
+
+            // Odd length
+            int l = i, r = i;
+            while (l >= 0 && r < s.length() &&
+                   s.charAt(l) == s.charAt(r)) {
+
+                if (r - l + 1 >= 2 && r - l + 1 > maxLen) {
+                    maxLen = r - l + 1;
+                    start = l;
+                }
+                l--;
+                r++;
+            }
+
+            // Even length
+            l = i;
+            r = i + 1;
+            while (l >= 0 && r < s.length() &&
+                   s.charAt(l) == s.charAt(r)) {
+
+                if (r - l + 1 >= 2 && r - l + 1 > maxLen) {
+                    maxLen = r - l + 1;
+                    start = l;
+                }
+                l--;
+                r++;
+            }
+        }
+
+        return maxLen == 0 ? "" : s.substring(start, start + maxLen);
+    }
+
+    // Find longest mirrorable substring
+    static String getLongestMirror(String s) {
+        int maxLen = 0, start = 0;
+
+        for (int i = 0; i < s.length(); i++) {
+            // Odd
+            int l = i, r = i;
+            while (l >= 0 && r < s.length()
+                    && mirror[s.charAt(l)][s.charAt(r)]) {
+                if (r - l + 1 > maxLen) {
+                    maxLen = r - l + 1;
+                    start = l;
+                }
+                l--;
+                r++;
+            }
+
+            // Even
+            l = i;
+            r = i + 1;
+            while (l >= 0 && r < s.length()
+                    && mirror[s.charAt(l)][s.charAt(r)]) {
+                if (r - l + 1 > maxLen) {
+                    maxLen = r - l + 1;
+                    start = l;
+                }
+                l--;
+                r++;
+            }
+        }
+
+        return maxLen < 2 ? "" : s.substring(start, start + maxLen);
+    }
+}
